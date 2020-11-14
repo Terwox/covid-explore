@@ -1,0 +1,35 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+Basic idea -- Bubble chart showing -- pop size, pop density, Trump vote %, covid numbers
+
+
+```{r}
+if (!require("pacman")) install.packages("pacman")
+library(pacman)
+p_load(covid19.analytics,ggplot2,ggthemes,ggrepel)
+```
+
+```{r}
+covid_11_13_20_state_avgs_91_DIVOC_states_normalized <- read_excel("covid 11-13-20 state avgs 91-DIVOC-states-normalized.xlsx")
+rona = as.data.frame(cbind(covid_11_13_20_state_avgs_91_DIVOC_states_normalized$location,covid_11_13_20_state_avgs_91_DIVOC_states_normalized$`44147`,covid_11_13_20_state_avgs_91_DIVOC_states_normalized$RepubPercent,covid_11_13_20_state_avgs_91_DIVOC_states_normalized$Pop,covid_11_13_20_state_avgs_91_DIVOC_states_normalized$Density))
+colnames(rona) = c("State","CasesPerWeek","TrumpPercent","Population","PopulationDensity")
+
+rona[,2:5] <- sapply(rona[,2:5],as.character)
+rona[,2:5] <- sapply(rona[,2:5],as.numeric)
+
+```
+
+```{r}
+p = ggplot(rona, aes(x = TrumpPercent, y = CasesPerWeek, color = TrumpPercent))
+p + geom_point() + geom_text_repel(label = rona$State, size = 2) + scale_color_gradient2(high = muted("red"), low = muted("blue"), midpoint = 0.5) + theme_minimal() +
+  labs(title = "Trump voting percentages per state vs. COVID-19 cases", 
+       subtitle = "1 week rolling average of new cases as-of 11-12-2020",
+       x = "Percent in state that voted for Trump",
+       y = "New covid-19 cases per week, rolling average",
+       color = "% of Trump voters") +
+  geom_smooth(method="lm", se=FALSE,color = "black")
+```
+
